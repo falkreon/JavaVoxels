@@ -1,9 +1,5 @@
 package blue.endless.voxel.volume;
 
-import java.util.function.Function;
-
-import javax.annotation.Nonnull;
-
 public class ArrayVoxelVolume<V> implements VoxelVolume<V> {
 	private V[] data;
 	private int xsize;
@@ -46,7 +42,6 @@ public class ArrayVoxelVolume<V> implements VoxelVolume<V> {
 	private int getIndex(long x, long y, long z) throws ArrayIndexOutOfBoundsException {
 		//This test also covers if x/y/z are outside the integer range
 		if (!isInBounds(x,y,z)) throw new ArrayIndexOutOfBoundsException();
-		//if (x<0 || y<0 || z<0 || x>=xsize || y>=ysize || z>=zsize) throw new ArrayIndexOutOfBoundsException();
 		return ((int)y) + ((int)x)*ysize + ((int)z)*xsize*ysize;
 	}
 	
@@ -65,37 +60,33 @@ public class ArrayVoxelVolume<V> implements VoxelVolume<V> {
 		return result;
 	}
 	
-	public VoxelVolume<V> copyOut(long x, long y, long z, long xsize, long ysize, long zsize, VoxelVolume<V> destination) {
-		return copyOut(x,y,z,xsize,ysize,zsize, destination, Function.identity());
-	}
-
-	@Override
-	public <U> @Nonnull VoxelVolume<U> copyOut(long x, long y, long z, long xsize, long ysize, long zsize, VoxelVolume<U> destination, Function<V, U> remapper) {
+	//@Override
+	//public <U> @Nonnull VoxelVolume<U> copyOut(long x, long y, long z, long xsize, long ysize, long zsize, VoxelVolume<U> destination, Function<V, U> remapper) {
 		/* TODO: The following introduces an edge case bug where the destination is null or too small, but xsize, ysize, and/or zsize is also greater than Integer.MAX_VALUE, so an appropriate volume cannot be created.
 		 * This case is extremely unlikely in early testing, but will definitely need to get cleaned up later.
 		 * 
 		 * In fact, this whole thing breaks pretty hard if sizes are too big.
 		 */
-		if (destination==null || destination.getXSize()<xsize || destination.getYSize()<ysize || destination.getZSize()<zsize) {
-			destination = new ArrayVoxelVolume<U>((int)xsize,(int)ysize,(int)zsize);
-		}
+	//	if (destination==null || destination.getXSize()<xsize || destination.getYSize()<ysize || destination.getZSize()<zsize) {
+	//		destination = new ArrayVoxelVolume<U>((int)xsize,(int)ysize,(int)zsize);
+	//	}
 		
-		for(long zi = 0; zi<zsize; zi++) {
-			for(long xi = 0; xi<xsize; xi++) {
-				//TODO: This innermost loop could be reduced to arraycopy calls if the destination is backed by an array
-				for(long yi = 0; yi<ysize; yi++) {
-					long cx = x+xi;
-					long cy = y+yi;
-					long cz = z+zi;
-					if (isInBounds(cx,cy,cz)) {
-						destination.set(xi, yi, zi, remapper.apply(get(cx,cy,cz)));
-					}
-				}
-			}
-		}
+	//	for(long zi = 0; zi<zsize; zi++) {
+	//		for(long xi = 0; xi<xsize; xi++) {
+	//			//TODO: This innermost loop could be reduced to arraycopy calls if the destination is backed by an array
+	//			for(long yi = 0; yi<ysize; yi++) {
+	//				long cx = x+xi;
+	//				long cy = y+yi;
+	//				long cz = z+zi;
+	//				if (isInBounds(cx,cy,cz)) {
+	//					destination.set(xi, yi, zi, remapper.apply(get(cx,cy,cz)));
+	//				}
+	//			}
+	//		}
+	//	}
 		
-		return destination;
-	}
+	//	return destination;
+	//}
 
 	
 }

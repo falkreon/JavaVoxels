@@ -46,10 +46,40 @@ public interface VoxelVolume<V> {
 	 * @param destination the Volume to copy voxels into. If null, or inappropriately sized, an appropriate volume will be created with an unspecified implementation.
 	 * @return the destination argument if the copy into it was successful, otherwise a new volume containing the copy
 	 */
-	@Nonnull VoxelVolume<V> copyOut(long x, long y, long z, long xsize, long ysize, long zsize, @Nullable VoxelVolume<V> destination);
+	default @Nonnull VoxelVolume<V> copyOut(long x, long y, long z, long xsize, long ysize, long zsize, @Nullable VoxelVolume<V> destination) {
+		return copyOut(x,y,z,xsize,ysize,zsize, destination, Function.identity());
+	}
 	
 	/**
 	 * Same as {@link #copyOut(long, long, long, long, long, long, VoxelVolume)} but remaps the voxels as they're copied.
 	 */
-	<U> @Nonnull VoxelVolume<U> copyOut(long x, long y, long z, long xsize, long ysize, long zsize, @Nonnull VoxelVolume<U> destination, @Nonnull Function<V, U> remapper);
+	default <U> @Nonnull VoxelVolume<U> copyOut(long x, long y, long z, long xsize, long ysize, long zsize, @Nonnull VoxelVolume<U> destination, @Nonnull Function<V, U> remapper) {
+
+		if (destination==null || destination.getXSize()<xsize || destination.getYSize()<ysize || destination.getZSize()<zsize) {
+			destination = VoxelVolumes.<U>createCompatibleVolume(xsize, ysize, zsize);
+		}
+		
+		for(long zi = 0; zi<zsize; zi++) {
+			for(long xi = 0; xi<xsize; xi++) {
+				//TODO: This innermost loop could be reduced to arraycopy calls if the destination is backed by an array
+				for(long yi = 0; yi<ysize; yi++) {
+					long cx = x+xi;
+					long cy = y+yi;
+					long cz = z+zi;
+					if (
+						x >= 0 &&
+						y >= 0 &&
+						z >= 0 &&
+						x < xsize &&
+						y < ysize &&
+						z < zsize) {
+						
+						destination.set(xi, yi, zi, remapper.apply(get(cx,cy,cz)));
+					}
+				}
+			}
+		}
+		
+		return destination;
+	}
 }
